@@ -1,11 +1,29 @@
-import { Link, useLocation } from 'react-router-dom'
-import { Sun, Moon } from 'lucide-react'
+import { useTransition } from 'react'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
+import { Sun, Moon, LogOut } from 'lucide-react'
 import { Switch } from '@/components/animate-ui/components/radix/switch'
 import { useTheme } from '@/contexts/ThemeContext'
+import { authApi } from '../../utils/api'
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme()
   const location = useLocation()
+  const navigate = useNavigate()
+  const [isPending, startTransition] = useTransition()
+  const isLoggedIn = !!localStorage.getItem('token')
+
+  const handleLogout = async () => {
+    startTransition(async () => {
+      await authApi.logout()
+
+      // Clear token and user info (matching what Login.tsx sets)
+      localStorage.removeItem('token')
+      localStorage.removeItem('userId')
+
+      // Navigate to login page on success
+      navigate('/login')
+    })
+  }
 
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 bg-white/80 dark:bg-black/80 backdrop-blur-md border-b border-zinc-200 dark:border-zinc-800">
@@ -27,7 +45,7 @@ const Navbar = () => {
 
           {/* CTA Buttons */}
           <div className="flex items-center gap-3">
-            {location.pathname !== '/login' && (
+            {!isLoggedIn && location.pathname !== '/login' && (
               <Link
                 to="/login"
                 className="hidden sm:inline-flex items-center px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors"
@@ -35,13 +53,24 @@ const Navbar = () => {
                 Sign In
               </Link>
             )}
-            {location.pathname !== '/register' && (
+            {!isLoggedIn && location.pathname !== '/register' && (
               <Link
                 to="/register"
                 className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg shadow-indigo-500/50 dark:shadow-indigo-500/20"
               >
                 Get Started
               </Link>
+            )}
+
+            {isLoggedIn && (
+              <button
+                onClick={handleLogout}
+                disabled={isPending}
+                className="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-zinc-700 dark:text-zinc-300 hover:text-zinc-900 dark:hover:text-zinc-100 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <LogOut className="h-4 w-4" />
+                {isPending ? 'Signing out...' : 'Sign Out'}
+              </button>
             )}
 
             {/* Theme Toggle */}

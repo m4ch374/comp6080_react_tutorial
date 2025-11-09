@@ -1,20 +1,29 @@
-import { useState } from 'react'
+import { useState, useTransition } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { Checkbox } from '@/components/animate-ui/components/base/checkbox'
+import { authApi } from '../../utils/api'
 
 const Login = () => {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
   const [rememberMe, setRememberMe] = useState(false)
+  const [isPending, startTransition] = useTransition()
 
   const navigate = useNavigate()
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    // Handle login logic here
-    console.log('Login:', { email, password })
-    localStorage.setItem('isLoggedIn', 'true')
-    navigate('/dashboard')
+
+    startTransition(async () => {
+      const response = await authApi.login({ email, password })
+
+      // Store token and user info
+      localStorage.setItem('token', response.token)
+      localStorage.setItem('userId', response.userId.toString())
+
+      // Navigate to dashboard on success
+      navigate('/dashboard')
+    })
   }
 
   return (
@@ -90,9 +99,10 @@ const Login = () => {
           <div>
             <button
               type="submit"
-              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400"
+              disabled={isPending}
+              className="group relative w-full flex justify-center py-2 px-4 border border-transparent text-sm font-medium rounded-md bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 dark:focus:ring-indigo-400 disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              Sign in
+              {isPending ? 'Signing in...' : 'Sign in'}
             </button>
           </div>
 

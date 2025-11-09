@@ -1,28 +1,24 @@
-import { Outlet, Route, Routes } from 'react-router'
+import { Route, Routes } from 'react-router'
 import Landing from './pages/Landing'
 import Pricing from './pages/Pricing'
 import Register from './pages/Register'
 import Login from './pages/Login'
-import Navbar from './components/Navbar'
 import Dashboard from './pages/Dashboard'
+import Layout from './components/Layout'
+import ProtectedRoute from './components/ProtectedRoute'
 
 const App = () => {
   return (
     <Routes>
-      <Route
-        path="/"
-        element={
-          <>
-            <Navbar />
-            <Outlet />
-          </>
-        }
-      >
+      <Route path="/" element={<Layout />}>
         <Route path="/" element={<Landing />} />
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route element={<ProtectedRoute />}>
+          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard/:channelId" element={<Dashboard />} />
+        </Route>
       </Route>
     </Routes>
   )

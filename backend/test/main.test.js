@@ -1,5 +1,5 @@
 import request from 'supertest';
-import server from '../src/server';
+import app from '../src/server';
 import { reset } from '../src/service';
 
 const IMAGE = 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAUAAAAFCAYAAACNbyblAAAAHElEQVQI12P4//8/w38GIAXDIBKE0DHxgljNBAAO9TXL0Y4OHwAAAABJRU5ErkJggg==';
@@ -45,7 +45,7 @@ const deleteTry = async (path, status, payload, token) => sendTry('delete', path
 const putTry = async (path, status, payload, token) => sendTry('put', path, status, payload, token);
 
 const sendTry = async (typeFn, path, status = 200, payload = {}, token = null) => {
-  let req = request(server);
+  let req = request(app);
   if (typeFn === 'post') {
     req = req.post(path);
   } else if (typeFn === 'get') {
@@ -90,10 +90,6 @@ describe('Auth tests', () => {
 
   beforeAll(() => {
     reset();
-  });
-
-  beforeAll(() => {
-    server.close();
   });
 
   test('Registration of initial user', async () => {
@@ -180,10 +176,6 @@ describe('Channel tests', () => {
       password: USER3.password,
       name: USER3.name,
     });
-  });
-
-  beforeAll(() => {
-    server.close();
   });
 
   test('Viewing channels, invalid token', async () => {
@@ -498,10 +490,6 @@ describe('User tests', () => {
     });
   });
 
-  beforeAll(() => {
-    server.close();
-  });
-
   test('Viewing users, invalid token', async () => {
     await getTry('/user', 403, {}, INVALID_TOKEN);
   });
@@ -635,10 +623,6 @@ describe('Message tests', () => {
       private: CHANNEL_PRIVATE.private,
       description: CHANNEL_PRIVATE.description,
     }, await validToken(USER1));
-  });
-
-  beforeAll(() => {
-    server.close();
   });
 
   test('Viewing messages, invalid token', async () => {

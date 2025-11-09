@@ -232,11 +232,15 @@ app.get('/', (req, res) => res.redirect('/docs'));
 
 app.use('/docs', swaggerUi.serve, swaggerUi.setup(swaggerDocument));
 
-const port = BACKEND_PORT || 5000;
+const port = BACKEND_PORT || 5001;
 
-const server = app.listen(port, () => {
-  console.log(`Backend is now listening on port ${port}!`);
-  console.log(`For API docs, navigate to http://localhost:${port}`);
-});
+// Only start server if not in test environment
+// In test environment, the server will be started manually in test files
+if (process.env.NODE_ENV !== 'test') {
+  app.listen(port, () => {
+    console.log(`Backend is now listening on port ${port}!`);
+    console.log(`For API docs, navigate to http://localhost:${port}`);
+  });
+}
 
-export default server;
+export default app;

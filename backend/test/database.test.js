@@ -1,12 +1,12 @@
 import request from 'supertest';
-import server from '../src/server';
+import app from '../src/server';
 import { reset } from '../src/service';
 
 const postTry = async (path, payload, token) => sendTry('post', path, payload, token);
 const getTry = async (path, payload, token) => sendTry('get', path, payload, token);
 
 const sendTry = async (typeFn, path, payload = {}, token = null) => {
-    let req = request(server);
+    let req = request(app);
     if (typeFn === 'post') {
         req = req.post(path);
     } else if (typeFn === 'get') {
@@ -27,10 +27,6 @@ describe('Making the database', () => {
 
     beforeAll(() => {
         reset();
-    });
-
-    beforeAll(() => {
-        server.close();
     });
 
     test('Public channel', async () => {
