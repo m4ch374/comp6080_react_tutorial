@@ -39,45 +39,29 @@ const Dashboard = () => {
 
         {/* Main Content Area */}
         <div className="flex-1 flex flex-col overflow-hidden relative">
-          {channelId ? (
-            <>
-              {/* Channel Details */}
-              <ChannelDetails
-                channelId={parseInt(channelId, 10)}
-                onChannelUpdate={handleChannelUpdate}
-              />
+          {/* Channel Details */}
+          <ChannelDetails
+            channelId={parseInt(channelId!, 10)}
+            onChannelUpdate={handleChannelUpdate}
+          />
 
-              {/* Messages List */}
-              <MessageList
-                channelId={parseInt(channelId, 10)}
-                currentUserId={userId}
-                onMessageUpdate={handleChannelUpdate}
-                onAddMessageRef={callback => {
-                  addMessageRef.current = callback
-                }}
-              />
+          {/* Messages List */}
+          <MessageList
+            channelId={parseInt(channelId!, 10)}
+            currentUserId={userId}
+            onMessageUpdate={handleChannelUpdate}
+            onAddMessageRef={callback => {
+              addMessageRef.current = callback
+            }}
+          />
 
-              {/* Message Input - Fixed at bottom of screen */}
-              <div className="fixed bottom-0 left-64 right-0 z-40">
-                <MessageInput
-                  channelId={parseInt(channelId, 10)}
-                  onMessageSent={handleMessageSent}
-                />
-              </div>
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center">
-              <div className="text-center max-w-md px-4">
-                <h2 className="text-2xl font-bold text-zinc-900 dark:text-zinc-100 mb-2">
-                  Welcome to your Dashboard
-                </h2>
-                <p className="text-zinc-600 dark:text-zinc-400 mb-6">
-                  Select a channel from the sidebar to start chatting, or create
-                  a new channel to get started.
-                </p>
-              </div>
-            </div>
-          )}
+          {/* Message Input - Fixed at bottom of screen */}
+          <div className="fixed bottom-0 left-64 right-0 z-40">
+            <MessageInput
+              channelId={parseInt(channelId!, 10)}
+              onMessageSent={handleMessageSent}
+            />
+          </div>
         </div>
       </div>
     </div>

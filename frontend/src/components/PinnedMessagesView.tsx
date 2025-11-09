@@ -30,7 +30,7 @@ const PinnedMessagesView = ({
           const response = await messageApi.getMessages(channelId, start)
           const messages = response.messages
           allMessages = [...allMessages, ...messages]
-          
+
           // Filter pinned messages
           const pinned = messages.filter(m => m.pinned)
           setPinnedMessages(prev => {
@@ -107,7 +107,9 @@ const PinnedMessagesView = ({
         <div className="flex-1 overflow-y-auto p-4">
           {loading ? (
             <div className="flex items-center justify-center h-32">
-              <div className="text-zinc-500 dark:text-zinc-400">Loading pinned messages...</div>
+              <div className="text-zinc-500 dark:text-zinc-400">
+                Loading pinned messages...
+              </div>
             </div>
           ) : pinnedMessages.length === 0 ? (
             <div className="flex items-center justify-center h-32">
@@ -136,4 +138,3 @@ const PinnedMessagesView = ({
 }
 
 export default PinnedMessagesView
-

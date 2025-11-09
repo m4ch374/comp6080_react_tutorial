@@ -4,6 +4,7 @@ import Pricing from './pages/Pricing'
 import Register from './pages/Register'
 import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
+import DashboardOnboard from './pages/DashboardOnboard'
 import Layout from './components/Layout'
 import ProtectedRoute from './components/ProtectedRoute'
 
@@ -16,7 +17,7 @@ const App = () => {
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route element={<ProtectedRoute />}>
-          <Route path="/dashboard" element={<Dashboard />} />
+          <Route path="/dashboard" element={<DashboardOnboard />} />
           <Route path="/dashboard/:channelId" element={<Dashboard />} />
         </Route>
       </Route>
