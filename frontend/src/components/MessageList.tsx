@@ -9,7 +9,12 @@ interface MessageListProps {
   onAddMessageRef?: (callback: () => void) => void
 }
 
-const MessageList = ({ channelId, currentUserId, onMessageUpdate, onAddMessageRef }: MessageListProps) => {
+const MessageList = ({
+  channelId,
+  currentUserId,
+  onMessageUpdate,
+  onAddMessageRef,
+}: MessageListProps) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -50,7 +55,8 @@ const MessageList = ({ channelId, currentUserId, onMessageUpdate, onAddMessageRe
     if (!container || messages.length === 0) return
 
     const isNearBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight < 100
+      container.scrollHeight - container.scrollTop - container.clientHeight <
+      100
 
     if (isNearBottom && messages.length > lastMessageCountRef.current) {
       requestAnimationFrame(() => {
@@ -63,21 +69,26 @@ const MessageList = ({ channelId, currentUserId, onMessageUpdate, onAddMessageRe
     lastMessageCountRef.current = messages.length
   }, [messages.length])
 
-  const handleMessageUpdate = useCallback((updatedMessage?: Message, action?: 'add' | 'update' | 'delete') => {
-    if (action === 'add' && updatedMessage) {
-      setMessages(prev => [...prev, updatedMessage])
-    } else if (action === 'update' && updatedMessage) {
-      setMessages(prev => prev.map(msg => msg.id === updatedMessage.id ? updatedMessage : msg))
-    } else if (action === 'delete' && updatedMessage) {
-      setMessages(prev => prev.filter(msg => msg.id !== updatedMessage.id))
-    } else {
-      // Fallback: refetch messages
-      fetchMessages()
-    }
-    if (onMessageUpdate) {
-      onMessageUpdate()
-    }
-  }, [fetchMessages, onMessageUpdate])
+  const handleMessageUpdate = useCallback(
+    (updatedMessage?: Message, action?: 'add' | 'update' | 'delete') => {
+      if (action === 'add' && updatedMessage) {
+        setMessages(prev => [...prev, updatedMessage])
+      } else if (action === 'update' && updatedMessage) {
+        setMessages(prev =>
+          prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
+        )
+      } else if (action === 'delete' && updatedMessage) {
+        setMessages(prev => prev.filter(msg => msg.id !== updatedMessage.id))
+      } else {
+        // Fallback: refetch messages
+        fetchMessages()
+      }
+      if (onMessageUpdate) {
+        onMessageUpdate()
+      }
+    },
+    [fetchMessages, onMessageUpdate]
+  )
 
   const handleAddMessage = useCallback(async () => {
     // Fetch the latest messages to get the newly sent message
@@ -85,7 +96,7 @@ const MessageList = ({ channelId, currentUserId, onMessageUpdate, onAddMessageRe
       const response = await messageApi.getMessages(channelId, 0)
       const newMessages = [...response.messages].reverse()
       setMessages(newMessages)
-      
+
       // Scroll to bottom
       requestAnimationFrame(() => {
         const container = scrollContainerRef.current
@@ -108,7 +119,9 @@ const MessageList = ({ channelId, currentUserId, onMessageUpdate, onAddMessageRe
   if (loading && messages.length === 0) {
     return (
       <div className="flex-1 flex items-center justify-center">
-        <div className="text-zinc-500 dark:text-zinc-400">Loading messages...</div>
+        <div className="text-zinc-500 dark:text-zinc-400">
+          Loading messages...
+        </div>
       </div>
     )
   }
@@ -140,4 +153,3 @@ const MessageList = ({ channelId, currentUserId, onMessageUpdate, onAddMessageRe
 }
 
 export default MessageList
-

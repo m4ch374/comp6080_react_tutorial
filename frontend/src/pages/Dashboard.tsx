@@ -25,14 +25,16 @@ const Dashboard = () => {
   }
 
   return (
-    <div className="min-h-screen w-full bg-zinc-50 dark:bg-black flex flex-col pt-16">
+    <div className="h-screen w-full bg-zinc-50 dark:bg-black flex flex-col pt-16">
       <div className="flex-1 flex overflow-hidden">
         {/* Left Sidebar - Channel List */}
-        <div className="w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col">
-          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800">
+        <div className="w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col overflow-hidden">
+          <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
             <CreateChannelForm onChannelCreated={handleChannelUpdate} />
           </div>
-          <ChannelList refreshTrigger={channelListRefresh} />
+          <div className="flex-1 overflow-y-auto">
+            <ChannelList refreshTrigger={channelListRefresh} />
+          </div>
         </div>
 
         {/* Main Content Area */}

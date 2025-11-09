@@ -38,7 +38,7 @@ const Navbar = () => {
                 window.scrollTo({ top: 0, behavior: 'smooth' })
               }
             }}
-            className="flex items-center gap-2 text-xl font-bold bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
+            className="flex items-center gap-2 text-xl font-bold bg-linear-to-r from-indigo-600 via-purple-600 to-pink-600 dark:from-indigo-400 dark:via-purple-400 dark:to-pink-400 bg-clip-text text-transparent hover:opacity-80 transition-opacity"
           >
             Faker.ai
           </Link>
@@ -56,7 +56,7 @@ const Navbar = () => {
             {!isLoggedIn && location.pathname !== '/register' && (
               <Link
                 to="/register"
-                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg shadow-indigo-500/50 dark:shadow-indigo-500/20"
+                className="inline-flex items-center px-4 py-2 text-sm font-medium text-white bg-linear-to-r from-indigo-600 to-purple-600 hover:from-indigo-700 hover:to-purple-700 rounded-lg transition-all duration-200 hover:scale-105 shadow-lg shadow-indigo-500/50 dark:shadow-indigo-500/20"
               >
                 Get Started
               </Link>

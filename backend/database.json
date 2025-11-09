@@ -30,40 +30,10 @@
       ],
       "messages": [
         {
-          "id": 46,
-          "message": "another",
+          "id": 48,
+          "message": "test",
           "sender": 59315,
-          "sentAt": "2025-11-09T08:40:13.743Z",
-          "edited": false,
-          "editedAt": null,
-          "pinned": false,
-          "reacts": []
-        },
-        {
-          "id": 45,
-          "message": "hi",
-          "sender": 59315,
-          "sentAt": "2025-11-09T08:36:04.257Z",
-          "edited": false,
-          "editedAt": null,
-          "pinned": false,
-          "reacts": []
-        },
-        {
-          "id": 44,
-          "message": "hi",
-          "sender": 59315,
-          "sentAt": "2025-11-09T08:35:56.710Z",
-          "edited": false,
-          "editedAt": null,
-          "pinned": false,
-          "reacts": []
-        },
-        {
-          "id": 43,
-          "message": "hi",
-          "sender": 59315,
-          "sentAt": "2025-11-09T08:31:58.425Z",
+          "sentAt": "2025-11-09T09:45:53.628Z",
           "edited": false,
           "editedAt": null,
           "pinned": false,
@@ -492,5 +462,5 @@
       ]
     }
   },
-  "nextMessageId": 48
+  "nextMessageId": 49
 }
