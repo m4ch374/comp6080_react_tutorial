@@ -1,28 +1,66 @@
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import ChannelList from '../components/ChannelList'
 import CreateChannelForm from '../components/CreateChannelForm'
 import ChannelDetails from '../components/ChannelDetails'
 import MessageList from '../components/MessageList'
 import MessageInput from '../components/MessageInput'
+import { channelApi, type ChannelBasic, type Message } from '../../utils/api'
 
 const Dashboard = () => {
-  const [channelListRefresh, setChannelListRefresh] = useState(0)
-  const addMessageRef = useRef<(() => void) | null>(null)
+  const [channels, setChannels] = useState<ChannelBasic[]>([])
+  const [isLoadingChannels, setIsLoadingChannels] = useState(true)
+  const addMessageRef = useRef<((message: Message) => void) | null>(null)
   const { channelId } = useParams<{ channelId?: string }>()
   const userId = parseInt(localStorage.getItem('userId') || '0', 10)
 
-  const handleChannelUpdate = () => {
-    // Trigger channel list refresh
-    setChannelListRefresh(prev => prev + 1)
-  }
-
-  const handleMessageSent = () => {
-    // Trigger message list refresh
-    if (addMessageRef.current) {
-      addMessageRef.current()
+  useEffect(() => {
+    const loadChannels = async () => {
+      try {
+        setIsLoadingChannels(true)
+        const response = await channelApi.list()
+        setChannels(response.channels)
+      } catch (error) {
+        console.error('Failed to load channels:', error)
+      } finally {
+        setIsLoadingChannels(false)
+      }
     }
-  }
+
+    loadChannels()
+  }, [])
+
+  const upsertChannel = useCallback((incomingChannel: ChannelBasic) => {
+    setChannels(prevChannels => {
+      const exists = prevChannels.some(ch => ch.id === incomingChannel.id)
+      if (exists) {
+        return prevChannels.map(ch =>
+          ch.id === incomingChannel.id ? incomingChannel : ch
+        )
+      }
+      return [...prevChannels, incomingChannel]
+    })
+  }, [])
+
+  const handleChannelCreated = useCallback(
+    (newChannel: ChannelBasic) => {
+      upsertChannel(newChannel)
+    },
+    [upsertChannel]
+  )
+
+  const handleChannelChanged = useCallback(
+    (updatedChannel: ChannelBasic) => {
+      upsertChannel(updatedChannel)
+    },
+    [upsertChannel]
+  )
+
+  const handleMessageSent = useCallback((newMessage: Message) => {
+    if (addMessageRef.current) {
+      addMessageRef.current(newMessage)
+    }
+  }, [])
 
   return (
     <div className="h-screen w-full bg-zinc-50 dark:bg-black flex flex-col pt-16">
@@ -30,10 +68,10 @@ const Dashboard = () => {
         {/* Left Sidebar - Channel List */}
         <div className="w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col overflow-hidden">
           <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-            <CreateChannelForm onChannelCreated={handleChannelUpdate} />
+            <CreateChannelForm onChannelCreated={handleChannelCreated} />
           </div>
           <div className="flex-1 overflow-y-auto">
-            <ChannelList refreshTrigger={channelListRefresh} />
+            <ChannelList channels={channels} isLoading={isLoadingChannels} />
           </div>
         </div>
 
@@ -42,14 +80,13 @@ const Dashboard = () => {
           {/* Channel Details */}
           <ChannelDetails
             channelId={parseInt(channelId!, 10)}
-            onChannelUpdate={handleChannelUpdate}
+            onChannelChange={handleChannelChanged}
           />
 
           {/* Messages List */}
           <MessageList
             channelId={parseInt(channelId!, 10)}
             currentUserId={userId}
-            onMessageUpdate={handleChannelUpdate}
             onAddMessageRef={callback => {
               addMessageRef.current = callback
             }}

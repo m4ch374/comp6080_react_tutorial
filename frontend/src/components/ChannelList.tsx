@@ -1,34 +1,16 @@
-import { useEffect, useState } from 'react'
 import { useNavigate, useParams } from 'react-router-dom'
-import { channelApi, type ChannelBasic } from '../../utils/api'
+import { type ChannelBasic } from '../../utils/api'
 import { Lock, Globe } from 'lucide-react'
 
 interface ChannelListProps {
-  refreshTrigger?: number
+  channels: ChannelBasic[]
+  isLoading?: boolean
 }
 
-const ChannelList = ({ refreshTrigger }: ChannelListProps) => {
-  const [channels, setChannels] = useState<ChannelBasic[]>([])
-  const [loading, setLoading] = useState(true)
+const ChannelList = ({ channels, isLoading = false }: ChannelListProps) => {
   const navigate = useNavigate()
   const { channelId } = useParams<{ channelId?: string }>()
   const userId = parseInt(localStorage.getItem('userId') || '0', 10)
-
-  const fetchChannels = async () => {
-    try {
-      setLoading(true)
-      const response = await channelApi.list()
-      setChannels(response.channels)
-    } catch (error) {
-      console.error('Failed to fetch channels:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchChannels()
-  }, [refreshTrigger])
 
   const publicChannels = channels.filter(ch => !ch.private)
   const privateChannels = channels.filter(
@@ -39,10 +21,12 @@ const ChannelList = ({ refreshTrigger }: ChannelListProps) => {
     navigate(`/dashboard/${id}`)
   }
 
-  if (loading) {
+  if (isLoading) {
     return (
       <div className="h-full flex items-center justify-center">
-        <div className="text-zinc-500 dark:text-zinc-400">Loading channels...</div>
+        <div className="text-zinc-500 dark:text-zinc-400">
+          Loading channels...
+        </div>
       </div>
     )
   }
@@ -74,7 +58,7 @@ const ChannelList = ({ refreshTrigger }: ChannelListProps) => {
                 onClick={() => handleChannelClick(channel.id)}
               >
                 <div className="flex items-center gap-2">
-                  <Globe className="h-4 w-4 flex-shrink-0" />
+                  <Globe className="h-4 w-4 shrink-0" />
                   <span className="truncate font-medium">{channel.name}</span>
                 </div>
               </div>
@@ -100,7 +84,7 @@ const ChannelList = ({ refreshTrigger }: ChannelListProps) => {
                 onClick={() => handleChannelClick(channel.id)}
               >
                 <div className="flex items-center gap-2">
-                  <Lock className="h-4 w-4 flex-shrink-0" />
+                  <Lock className="h-4 w-4 shrink-0" />
                   <span className="truncate font-medium">{channel.name}</span>
                 </div>
               </div>
@@ -119,4 +103,3 @@ const ChannelList = ({ refreshTrigger }: ChannelListProps) => {
 }
 
 export default ChannelList
-

@@ -1,10 +1,10 @@
 import { useState, useTransition, useRef, useEffect } from 'react'
-import { messageApi } from '../../utils/api'
+import { messageApi, type Message } from '../../utils/api'
 import { Send } from 'lucide-react'
 
 interface MessageInputProps {
   channelId: number
-  onMessageSent: () => void
+  onMessageSent: (message: Message) => void
 }
 
 const MessageInput = ({ channelId, onMessageSent }: MessageInputProps) => {
@@ -29,7 +29,7 @@ const MessageInput = ({ channelId, onMessageSent }: MessageInputProps) => {
 
     startTransition(async () => {
       try {
-        await messageApi.sendMessage(channelId, {
+        const createdMessage = await messageApi.sendMessage(channelId, {
           message: trimmedMessage,
         })
         setMessage('')
@@ -37,7 +37,7 @@ const MessageInput = ({ channelId, onMessageSent }: MessageInputProps) => {
         if (textareaRef.current) {
           textareaRef.current.style.height = 'auto'
         }
-        onMessageSent()
+        onMessageSent(createdMessage)
       } catch (error) {
         console.error('Failed to send message:', error)
       }

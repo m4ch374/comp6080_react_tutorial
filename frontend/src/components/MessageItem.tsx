@@ -10,6 +10,8 @@ interface MessageItemProps {
     updatedMessage?: Message,
     action?: 'add' | 'update' | 'delete'
   ) => void
+  sender?: User
+  ensureUser?: (userId: number) => Promise<User>
 }
 
 const REACTIONS = ['👍', '❤️', '😂'] // At least 3 UTF-8 emoji reactions
@@ -19,8 +21,10 @@ const MessageItem = ({
   channelId,
   currentUserId,
   onMessageUpdate,
+  sender: initialSender,
+  ensureUser,
 }: MessageItemProps) => {
-  const [sender, setSender] = useState<User | null>(null)
+  const [sender, setSender] = useState<User | null>(initialSender ?? null)
   const [isEditing, setIsEditing] = useState(false)
   const [editText, setEditText] = useState(message.message)
   const [isPending, startTransition] = useTransition()
@@ -29,18 +33,37 @@ const MessageItem = ({
 
   const isOwnMessage = message.sender === currentUserId
 
-  // Fetch sender details
+  // Fetch sender details (with caching)
   useEffect(() => {
-    const fetchSender = async () => {
-      try {
-        const userData = await userApi.getDetails(message.sender)
-        setSender(userData)
-      } catch (error) {
-        console.error('Failed to fetch sender:', error)
+    let isMounted = true
+
+    if (initialSender) {
+      setSender(initialSender)
+      return () => {
+        isMounted = false
       }
     }
-    fetchSender()
-  }, [message.sender])
+
+    const fetcher =
+      ensureUser ??
+      ((userId: number) => {
+        return userApi.getDetails(userId)
+      })
+
+    fetcher(message.sender)
+      .then(userData => {
+        if (isMounted) {
+          setSender(userData)
+        }
+      })
+      .catch(error => {
+        console.error('Failed to fetch sender:', error)
+      })
+
+    return () => {
+      isMounted = false
+    }
+  }, [initialSender, ensureUser, message.sender])
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString)

@@ -1,12 +1,12 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { messageApi, type Message } from '../../utils/api'
+import { messageApi, userApi, type Message, type User } from '../../utils/api'
 import MessageItem from './MessageItem'
 
 interface MessageListProps {
   channelId: number
   currentUserId: number
   onMessageUpdate?: () => void
-  onAddMessageRef?: (callback: () => void) => void
+  onAddMessageRef?: (callback: (message: Message) => void) => void
 }
 
 const MessageList = ({
@@ -17,8 +17,39 @@ const MessageList = ({
 }: MessageListProps) => {
   const [messages, setMessages] = useState<Message[]>([])
   const [loading, setLoading] = useState(true)
+  const [userCache, setUserCache] = useState<Record<number, User>>({})
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const lastMessageCountRef = useRef(0)
+  const pendingUserRequestsRef = useRef<Record<number, Promise<User>>>({})
+
+  const ensureUser = useCallback(
+    async (userId: number) => {
+      const cachedUser = userCache[userId]
+      if (cachedUser) {
+        return cachedUser
+      }
+
+      if (!pendingUserRequestsRef.current[userId]) {
+        pendingUserRequestsRef.current[userId] = userApi
+          .getDetails(userId)
+          .then(userData => {
+            setUserCache(prev => ({
+              ...prev,
+              [userId]: userData,
+            }))
+            delete pendingUserRequestsRef.current[userId]
+            return userData
+          })
+          .catch(error => {
+            delete pendingUserRequestsRef.current[userId]
+            throw error
+          })
+      }
+
+      return pendingUserRequestsRef.current[userId]
+    },
+    [userCache]
+  )
 
   const fetchMessages = useCallback(async () => {
     try {
@@ -72,7 +103,12 @@ const MessageList = ({
   const handleMessageUpdate = useCallback(
     (updatedMessage?: Message, action?: 'add' | 'update' | 'delete') => {
       if (action === 'add' && updatedMessage) {
-        setMessages(prev => [...prev, updatedMessage])
+        setMessages(prev => {
+          if (prev.some(msg => msg.id === updatedMessage.id)) {
+            return prev
+          }
+          return [...prev, updatedMessage]
+        })
       } else if (action === 'update' && updatedMessage) {
         setMessages(prev =>
           prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
@@ -90,24 +126,21 @@ const MessageList = ({
     [fetchMessages, onMessageUpdate]
   )
 
-  const handleAddMessage = useCallback(async () => {
-    // Fetch the latest messages to get the newly sent message
-    try {
-      const response = await messageApi.getMessages(channelId, 0)
-      const newMessages = [...response.messages].reverse()
-      setMessages(newMessages)
+  const handleAddMessage = useCallback((newMessage: Message) => {
+    setMessages(prev => {
+      if (prev.some(msg => msg.id === newMessage.id)) {
+        return prev
+      }
+      return [...prev, newMessage]
+    })
 
-      // Scroll to bottom
-      requestAnimationFrame(() => {
-        const container = scrollContainerRef.current
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
-      })
-    } catch (error) {
-      console.error('Failed to fetch new messages:', error)
-    }
-  }, [channelId])
+    requestAnimationFrame(() => {
+      const container = scrollContainerRef.current
+      if (container) {
+        container.scrollTop = container.scrollHeight
+      }
+    })
+  }, [])
 
   // Expose handleAddMessage to parent
   useEffect(() => {
@@ -143,6 +176,8 @@ const MessageList = ({
               message={message}
               channelId={channelId}
               currentUserId={currentUserId}
+              sender={userCache[message.sender]}
+              ensureUser={ensureUser}
               onMessageUpdate={handleMessageUpdate}
             />
           ))}

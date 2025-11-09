@@ -156,8 +156,11 @@ export const channelApi = {
     name: string
     private: boolean
     description?: string
-  }): Promise<{ channelId: number }> => {
-    const response = await api.post<{ channelId: number }>('/channel', data)
+  }): Promise<{ channelId: number; channel: ChannelBasic }> => {
+    const response = await api.post<{
+      channelId: number
+      channel: ChannelBasic
+    }>('/channel', data)
     return response.data
   },
 
@@ -227,8 +230,12 @@ export const messageApi = {
   sendMessage: async (
     channelId: number,
     data: { message?: string; image?: string }
-  ): Promise<void> => {
-    await api.post(`/message/${channelId}`, data)
+  ): Promise<Message> => {
+    const response = await api.post<{ message: Message }>(
+      `/message/${channelId}`,
+      data
+    )
+    return response.data.message
   },
 
   updateMessage: async (

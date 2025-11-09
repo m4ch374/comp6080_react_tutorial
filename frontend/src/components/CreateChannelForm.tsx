@@ -1,11 +1,11 @@
 import { useState, useTransition } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { channelApi } from '../../utils/api'
+import { channelApi, type ChannelBasic } from '../../utils/api'
 import { Checkbox } from '@/components/animate-ui/components/base/checkbox'
 import { Plus, X } from 'lucide-react'
 
 interface CreateChannelFormProps {
-  onChannelCreated?: () => void
+  onChannelCreated?: (channel: ChannelBasic) => void
 }
 
 const CreateChannelForm = ({ onChannelCreated }: CreateChannelFormProps) => {
@@ -37,13 +37,13 @@ const CreateChannelForm = ({ onChannelCreated }: CreateChannelFormProps) => {
         setIsPrivate(false)
         setIsOpen(false)
 
+        // Notify parent to update channel list
+        if (onChannelCreated && response.channel) {
+          onChannelCreated(response.channel)
+        }
+
         // Navigate to the new channel
         navigate(`/dashboard/${response.channelId}`)
-        
-        // Notify parent to refresh channel list
-        if (onChannelCreated) {
-          onChannelCreated()
-        }
       } catch (error) {
         console.error('Failed to create channel:', error)
       }
@@ -163,4 +163,3 @@ const CreateChannelForm = ({ onChannelCreated }: CreateChannelFormProps) => {
 }
 
 export default CreateChannelForm
-

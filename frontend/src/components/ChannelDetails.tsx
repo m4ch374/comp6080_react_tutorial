@@ -1,14 +1,36 @@
-import { useState, useEffect, useTransition } from 'react'
-import { channelApi, userApi, messageApi, type Channel, type User, type Message } from '../../utils/api'
-import { Edit2, Save, X, Lock, Globe, UserPlus, LogOut, Calendar, User as UserIcon, Pin } from 'lucide-react'
+import { useState, useEffect, useTransition, useCallback } from 'react'
+import {
+  channelApi,
+  userApi,
+  messageApi,
+  type Channel,
+  type User,
+  type Message,
+  type ChannelBasic,
+} from '../../utils/api'
+import {
+  Edit2,
+  Save,
+  X,
+  Lock,
+  Globe,
+  UserPlus,
+  LogOut,
+  Calendar,
+  User as UserIcon,
+  Pin,
+} from 'lucide-react'
 import MessageItem from './MessageItem'
 
 interface ChannelDetailsProps {
   channelId: number
-  onChannelUpdate?: () => void
+  onChannelChange?: (channel: ChannelBasic) => void
 }
 
-const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => {
+const ChannelDetails = ({
+  channelId,
+  onChannelChange,
+}: ChannelDetailsProps) => {
   const [channel, setChannel] = useState<Channel | null>(null)
   const [creator, setCreator] = useState<User | null>(null)
   const [isEditing, setIsEditing] = useState(false)
@@ -20,6 +42,22 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
   const [loadingPinned, setLoadingPinned] = useState(false)
   const userId = parseInt(localStorage.getItem('userId') || '0', 10)
 
+  const emitChannelChange = useCallback(
+    (channelData: Channel) => {
+      if (!onChannelChange) {
+        return
+      }
+      onChannelChange({
+        id: channelId,
+        name: channelData.name,
+        creator: channelData.creator,
+        private: channelData.private,
+        members: channelData.members,
+      })
+    },
+    [channelId, onChannelChange]
+  )
+
   useEffect(() => {
     const fetchChannelDetails = async () => {
       try {
@@ -27,6 +65,7 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
         setChannel(channelData)
         setEditName(channelData.name)
         setEditDescription(channelData.description)
+        emitChannelChange(channelData)
 
         // Fetch creator details
         try {
@@ -41,7 +80,7 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
     }
 
     fetchChannelDetails()
-  }, [channelId])
+  }, [channelId, emitChannelChange])
 
   useEffect(() => {
     if (showPinnedMessages && channel?.members.includes(userId)) {
@@ -106,9 +145,6 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
       }
       fetchPinnedMessages()
     }
-    if (onChannelUpdate) {
-      onChannelUpdate()
-    }
   }
 
   const isMember = channel?.members.includes(userId) ?? false
@@ -123,12 +159,10 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
           description: editDescription.trim(),
         })
         setIsEditing(false)
-        if (onChannelUpdate) {
-          onChannelUpdate()
-        }
         // Refresh channel details
         const updatedChannel = await channelApi.getDetails(channelId)
         setChannel(updatedChannel)
+        emitChannelChange(updatedChannel)
       } catch (error) {
         console.error('Failed to update channel:', error)
       }
@@ -139,12 +173,10 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
     startTransition(async () => {
       try {
         await channelApi.join(channelId)
-        if (onChannelUpdate) {
-          onChannelUpdate()
-        }
         // Refresh channel details
         const updatedChannel = await channelApi.getDetails(channelId)
         setChannel(updatedChannel)
+        emitChannelChange(updatedChannel)
       } catch (error) {
         console.error('Failed to join channel:', error)
       }
@@ -155,12 +187,10 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
     startTransition(async () => {
       try {
         await channelApi.leave(channelId)
-        if (onChannelUpdate) {
-          onChannelUpdate()
-        }
         // Refresh channel details
         const updatedChannel = await channelApi.getDetails(channelId)
         setChannel(updatedChannel)
+        emitChannelChange(updatedChannel)
       } catch (error) {
         console.error('Failed to leave channel:', error)
       }
@@ -195,9 +225,9 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-2 min-w-0 flex-1">
             {channel.private ? (
-              <Lock className="h-4 w-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+              <Lock className="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" />
             ) : (
-              <Globe className="h-4 w-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+              <Globe className="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" />
             )}
             <div className="min-w-0 flex-1">
               <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
@@ -213,7 +243,7 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
           <button
             onClick={handleJoin}
             disabled={isPending}
-            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white text-xs font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 flex-shrink-0"
+            className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 dark:bg-indigo-600 dark:hover:bg-indigo-700 text-white text-xs font-medium rounded-md transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1.5 shrink-0"
           >
             <UserPlus className="h-3.5 w-3.5" />
             {isPending ? 'Joining...' : 'Join'}
@@ -233,9 +263,9 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
           <div className="flex items-center justify-between gap-3 mb-2">
             <div className="flex items-center gap-2 min-w-0 flex-1">
               {channel.private ? (
-                <Lock className="h-4 w-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+                <Lock className="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" />
               ) : (
-                <Globe className="h-4 w-4 text-zinc-500 dark:text-zinc-400 flex-shrink-0" />
+                <Globe className="h-4 w-4 text-zinc-500 dark:text-zinc-400 shrink-0" />
               )}
               <div className="min-w-0 flex-1">
                 <h2 className="text-sm font-semibold text-zinc-900 dark:text-zinc-100 truncate">
@@ -248,7 +278,7 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
                 )}
               </div>
             </div>
-            <div className="flex items-center gap-1 flex-shrink-0">
+            <div className="flex items-center gap-1 shrink-0">
               <button
                 onClick={() => setShowPinnedMessages(true)}
                 className="p-1.5 text-yellow-600 dark:text-yellow-400 hover:text-yellow-700 dark:hover:text-yellow-300 rounded-md hover:bg-yellow-50 dark:hover:bg-yellow-900/20 transition-colors"
@@ -273,7 +303,7 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
               </button>
             </div>
           </div>
-          
+
           <div className="flex items-center gap-3 flex-wrap text-xs text-zinc-500 dark:text-zinc-400">
             <div className="flex items-center gap-1">
               <Calendar className="h-3 w-3" />
@@ -281,7 +311,9 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
             </div>
             <div className="flex items-center gap-1">
               <UserIcon className="h-3 w-3" />
-              <span className="truncate">{creator?.name || `User ${channel.creator}`}</span>
+              <span className="truncate">
+                {creator?.name || `User ${channel.creator}`}
+              </span>
             </div>
             <div className="flex items-center gap-1">
               {channel.private ? (
@@ -347,13 +379,13 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
 
       {/* Pinned Messages Modal */}
       {showPinnedMessages && (
-        <div 
+        <div
           className="fixed inset-0 bg-black/50 dark:bg-black/70 z-50 flex items-center justify-center p-4"
           onClick={() => setShowPinnedMessages(false)}
         >
-          <div 
+          <div
             className="bg-white dark:bg-zinc-900 rounded-lg shadow-xl w-full max-w-3xl max-h-[80vh] flex flex-col"
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
           >
             <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 flex items-center justify-between">
               <div className="flex items-center gap-2">
@@ -378,7 +410,9 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
             <div className="flex-1 overflow-y-auto p-4">
               {loadingPinned ? (
                 <div className="flex items-center justify-center h-32">
-                  <div className="text-zinc-500 dark:text-zinc-400">Loading pinned messages...</div>
+                  <div className="text-zinc-500 dark:text-zinc-400">
+                    Loading pinned messages...
+                  </div>
                 </div>
               ) : pinnedMessages.length === 0 ? (
                 <div className="flex items-center justify-center h-32">
@@ -409,4 +443,3 @@ const ChannelDetails = ({ channelId, onChannelUpdate }: ChannelDetailsProps) => 
 }
 
 export default ChannelDetails
-

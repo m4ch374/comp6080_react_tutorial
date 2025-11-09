@@ -18,6 +18,17 @@
     }
   },
   "channels": {
+    "300963": {
+      "name": "fff",
+      "creator": 59315,
+      "private": false,
+      "description": "No description",
+      "createdAt": "2025-11-09T15:43:24.136Z",
+      "members": [
+        59315
+      ],
+      "messages": []
+    },
     "628938": {
       "name": "public channel",
       "creator": 59315,
@@ -29,6 +40,56 @@
         36288
       ],
       "messages": [
+        {
+          "id": 53,
+          "message": "test",
+          "sender": 59315,
+          "sentAt": "2025-11-09T15:36:51.576Z",
+          "edited": false,
+          "editedAt": null,
+          "pinned": false,
+          "reacts": []
+        },
+        {
+          "id": 52,
+          "message": "test",
+          "sender": 59315,
+          "sentAt": "2025-11-09T15:36:44.216Z",
+          "edited": false,
+          "editedAt": null,
+          "pinned": false,
+          "reacts": []
+        },
+        {
+          "id": 51,
+          "message": "asdf",
+          "sender": 59315,
+          "sentAt": "2025-11-09T15:28:00.865Z",
+          "edited": false,
+          "editedAt": null,
+          "pinned": false,
+          "reacts": []
+        },
+        {
+          "id": 50,
+          "message": "asdf",
+          "sender": 59315,
+          "sentAt": "2025-11-09T15:20:43.160Z",
+          "edited": false,
+          "editedAt": null,
+          "pinned": false,
+          "reacts": []
+        },
+        {
+          "id": 49,
+          "message": "asdf",
+          "sender": 59315,
+          "sentAt": "2025-11-09T15:20:34.365Z",
+          "edited": false,
+          "editedAt": null,
+          "pinned": false,
+          "reacts": []
+        },
         {
           "id": 48,
           "message": "test",
@@ -460,7 +521,29 @@
           "reacts": []
         }
       ]
+    },
+    "637367": {
+      "name": "asdf",
+      "creator": 59315,
+      "private": false,
+      "description": "a",
+      "createdAt": "2025-11-09T15:37:04.734Z",
+      "members": [
+        59315
+      ],
+      "messages": []
+    },
+    "900862": {
+      "name": "aaaa",
+      "creator": 59315,
+      "private": false,
+      "description": "No description",
+      "createdAt": "2025-11-09T15:43:18.646Z",
+      "members": [
+        59315
+      ],
+      "messages": []
     }
   },
-  "nextMessageId": 49
+  "nextMessageId": 54
 }
