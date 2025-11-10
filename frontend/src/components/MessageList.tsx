@@ -1,26 +1,33 @@
 import { useEffect, useState, useRef, useCallback } from 'react'
-import { messageApi, userApi, type Message, type User } from '../../utils/api'
+import { userApi, type Message, type User } from '../../utils/api'
 import MessageItem from './MessageItem'
 
 interface MessageListProps {
   channelId: number
   currentUserId: number
-  onMessageUpdate?: () => void
-  onAddMessageRef?: (callback: (message: Message) => void) => void
+  messages: Message[]
+  onMessageUpdate: (
+    updatedMessage?: Message,
+    action?: 'add' | 'update' | 'delete'
+  ) => void
 }
 
 const MessageList = ({
   channelId,
   currentUserId,
+  messages,
   onMessageUpdate,
-  onAddMessageRef,
 }: MessageListProps) => {
-  const [messages, setMessages] = useState<Message[]>([])
-  const [loading, setLoading] = useState(true)
   const [userCache, setUserCache] = useState<Record<number, User>>({})
   const scrollContainerRef = useRef<HTMLDivElement>(null)
   const lastMessageCountRef = useRef(0)
   const pendingUserRequestsRef = useRef<Record<number, Promise<User>>>({})
+
+  // Reset user cache when channel changes
+  useEffect(() => {
+    setUserCache({})
+    lastMessageCountRef.current = 0
+  }, [channelId])
 
   const ensureUser = useCallback(
     async (userId: number) => {
@@ -51,113 +58,35 @@ const MessageList = ({
     [userCache]
   )
 
-  const fetchMessages = useCallback(async () => {
-    try {
-      setLoading(true)
-      const response = await messageApi.getMessages(channelId, 0)
-      // Messages are returned in reverse chronological order (newest first)
-      // We want to display newest at bottom, so we reverse them
-      const newMessages = [...response.messages].reverse()
-      setMessages(newMessages)
-
-      // Scroll to bottom after initial load
-      requestAnimationFrame(() => {
-        const container = scrollContainerRef.current
-        if (container) {
-          container.scrollTop = container.scrollHeight
-        }
-      })
-    } catch (error) {
-      console.error('Failed to fetch messages:', error)
-    } finally {
-      setLoading(false)
-    }
-  }, [channelId])
-
-  useEffect(() => {
-    setMessages([])
-    setLoading(true)
-    fetchMessages()
-  }, [channelId, fetchMessages])
-
-  // Auto-scroll to bottom when new messages arrive (if user is near bottom)
+  // Scroll to bottom when messages first load or when new messages arrive (if user is near bottom)
   useEffect(() => {
     const container = scrollContainerRef.current
-    if (!container || messages.length === 0) return
+    if (!container) return
 
-    const isNearBottom =
-      container.scrollHeight - container.scrollTop - container.clientHeight <
-      100
-
-    if (isNearBottom && messages.length > lastMessageCountRef.current) {
+    // If this is the first load (no previous messages), scroll to bottom
+    if (lastMessageCountRef.current === 0 && messages.length > 0) {
       requestAnimationFrame(() => {
         if (container) {
           container.scrollTop = container.scrollHeight
         }
       })
+    } else if (messages.length > 0) {
+      // For subsequent messages, only scroll if user is near bottom
+      const isNearBottom =
+        container.scrollHeight - container.scrollTop - container.clientHeight <
+        100
+
+      if (isNearBottom && messages.length > lastMessageCountRef.current) {
+        requestAnimationFrame(() => {
+          if (container) {
+            container.scrollTop = container.scrollHeight
+          }
+        })
+      }
     }
 
     lastMessageCountRef.current = messages.length
   }, [messages.length])
-
-  const handleMessageUpdate = useCallback(
-    (updatedMessage?: Message, action?: 'add' | 'update' | 'delete') => {
-      if (action === 'add' && updatedMessage) {
-        setMessages(prev => {
-          if (prev.some(msg => msg.id === updatedMessage.id)) {
-            return prev
-          }
-          return [...prev, updatedMessage]
-        })
-      } else if (action === 'update' && updatedMessage) {
-        setMessages(prev =>
-          prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
-        )
-      } else if (action === 'delete' && updatedMessage) {
-        setMessages(prev => prev.filter(msg => msg.id !== updatedMessage.id))
-      } else {
-        // Fallback: refetch messages
-        fetchMessages()
-      }
-      if (onMessageUpdate) {
-        onMessageUpdate()
-      }
-    },
-    [fetchMessages, onMessageUpdate]
-  )
-
-  const handleAddMessage = useCallback((newMessage: Message) => {
-    setMessages(prev => {
-      if (prev.some(msg => msg.id === newMessage.id)) {
-        return prev
-      }
-      return [...prev, newMessage]
-    })
-
-    requestAnimationFrame(() => {
-      const container = scrollContainerRef.current
-      if (container) {
-        container.scrollTop = container.scrollHeight
-      }
-    })
-  }, [])
-
-  // Expose handleAddMessage to parent
-  useEffect(() => {
-    if (onAddMessageRef) {
-      onAddMessageRef(handleAddMessage)
-    }
-  }, [onAddMessageRef, handleAddMessage])
-
-  if (loading && messages.length === 0) {
-    return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-zinc-500 dark:text-zinc-400">
-          Loading messages...
-        </div>
-      </div>
-    )
-  }
 
   return (
     <div ref={scrollContainerRef} className="flex-1 overflow-y-auto pb-32">
@@ -178,7 +107,7 @@ const MessageList = ({
               currentUserId={currentUserId}
               sender={userCache[message.sender]}
               ensureUser={ensureUser}
-              onMessageUpdate={handleMessageUpdate}
+              onMessageUpdate={onMessageUpdate}
             />
           ))}
         </div>

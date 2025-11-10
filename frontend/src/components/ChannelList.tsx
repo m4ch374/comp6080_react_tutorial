@@ -4,10 +4,9 @@ import { Lock, Globe } from 'lucide-react'
 
 interface ChannelListProps {
   channels: ChannelBasic[]
-  isLoading?: boolean
 }
 
-const ChannelList = ({ channels, isLoading = false }: ChannelListProps) => {
+const ChannelList = ({ channels }: ChannelListProps) => {
   const navigate = useNavigate()
   const { channelId } = useParams<{ channelId?: string }>()
   const userId = parseInt(localStorage.getItem('userId') || '0', 10)
@@ -19,16 +18,6 @@ const ChannelList = ({ channels, isLoading = false }: ChannelListProps) => {
 
   const handleChannelClick = (id: number) => {
     navigate(`/dashboard/${id}`)
-  }
-
-  if (isLoading) {
-    return (
-      <div className="h-full flex items-center justify-center">
-        <div className="text-zinc-500 dark:text-zinc-400">
-          Loading channels...
-        </div>
-      </div>
-    )
   }
 
   return (

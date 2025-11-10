@@ -1,34 +1,49 @@
-import { useState, useRef, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useParams } from 'react-router-dom'
 import ChannelList from '../components/ChannelList'
 import CreateChannelForm from '../components/CreateChannelForm'
 import ChannelDetails from '../components/ChannelDetails'
 import MessageList from '../components/MessageList'
 import MessageInput from '../components/MessageInput'
-import { channelApi, type ChannelBasic, type Message } from '../../utils/api'
+import {
+  channelApi,
+  messageApi,
+  type ChannelBasic,
+  type Message,
+} from '../../utils/api'
 
 const Dashboard = () => {
   const [channels, setChannels] = useState<ChannelBasic[]>([])
-  const [isLoadingChannels, setIsLoadingChannels] = useState(true)
-  const addMessageRef = useRef<((message: Message) => void) | null>(null)
+  const [messages, setMessages] = useState<Message[]>([])
   const { channelId } = useParams<{ channelId?: string }>()
   const userId = parseInt(localStorage.getItem('userId') || '0', 10)
 
   useEffect(() => {
-    const loadChannels = async () => {
-      try {
-        setIsLoadingChannels(true)
-        const response = await channelApi.list()
+    channelApi
+      .list()
+      .then(response => {
         setChannels(response.channels)
-      } catch (error) {
+      })
+      .catch(error => {
         console.error('Failed to load channels:', error)
-      } finally {
-        setIsLoadingChannels(false)
-      }
-    }
-
-    loadChannels()
+      })
   }, [])
+
+  useEffect(() => {
+    if (!channelId) return
+
+    messageApi
+      .getMessages(parseInt(channelId, 10), 0)
+      .then(response => {
+        // Messages are returned in reverse chronological order (newest first)
+        // We want to display newest at bottom, so we reverse them
+        const newMessages = [...response.messages].reverse()
+        setMessages(newMessages)
+      })
+      .catch(error => {
+        console.error('Failed to fetch messages:', error)
+      })
+  }, [channelId])
 
   const upsertChannel = useCallback((incomingChannel: ChannelBasic) => {
     setChannels(prevChannels => {
@@ -42,25 +57,25 @@ const Dashboard = () => {
     })
   }, [])
 
-  const handleChannelCreated = useCallback(
-    (newChannel: ChannelBasic) => {
-      upsertChannel(newChannel)
+  const handleMessageUpdate = useCallback(
+    (updatedMessage?: Message, action?: 'add' | 'update' | 'delete') => {
+      if (action === 'add' && updatedMessage) {
+        setMessages(prev => {
+          if (prev.some(msg => msg.id === updatedMessage.id)) {
+            return prev
+          }
+          return [...prev, updatedMessage]
+        })
+      } else if (action === 'update' && updatedMessage) {
+        setMessages(prev =>
+          prev.map(msg => (msg.id === updatedMessage.id ? updatedMessage : msg))
+        )
+      } else if (action === 'delete' && updatedMessage) {
+        setMessages(prev => prev.filter(msg => msg.id !== updatedMessage.id))
+      }
     },
-    [upsertChannel]
+    []
   )
-
-  const handleChannelChanged = useCallback(
-    (updatedChannel: ChannelBasic) => {
-      upsertChannel(updatedChannel)
-    },
-    [upsertChannel]
-  )
-
-  const handleMessageSent = useCallback((newMessage: Message) => {
-    if (addMessageRef.current) {
-      addMessageRef.current(newMessage)
-    }
-  }, [])
 
   return (
     <div className="h-screen w-full bg-zinc-50 dark:bg-black flex flex-col pt-16">
@@ -68,10 +83,10 @@ const Dashboard = () => {
         {/* Left Sidebar - Channel List */}
         <div className="w-64 border-r border-zinc-200 dark:border-zinc-800 bg-white dark:bg-zinc-900 flex flex-col overflow-hidden">
           <div className="p-4 border-b border-zinc-200 dark:border-zinc-800 shrink-0">
-            <CreateChannelForm onChannelCreated={handleChannelCreated} />
+            <CreateChannelForm onChannelCreated={upsertChannel} />
           </div>
           <div className="flex-1 overflow-y-auto">
-            <ChannelList channels={channels} isLoading={isLoadingChannels} />
+            <ChannelList channels={channels} />
           </div>
         </div>
 
@@ -80,23 +95,24 @@ const Dashboard = () => {
           {/* Channel Details */}
           <ChannelDetails
             channelId={parseInt(channelId!, 10)}
-            onChannelChange={handleChannelChanged}
+            onChannelChange={upsertChannel}
           />
 
           {/* Messages List */}
           <MessageList
             channelId={parseInt(channelId!, 10)}
             currentUserId={userId}
-            onAddMessageRef={callback => {
-              addMessageRef.current = callback
-            }}
+            messages={messages}
+            onMessageUpdate={handleMessageUpdate}
           />
 
           {/* Message Input - Fixed at bottom of screen */}
           <div className="fixed bottom-0 left-64 right-0 z-40">
             <MessageInput
               channelId={parseInt(channelId!, 10)}
-              onMessageSent={handleMessageSent}
+              onMessageSent={updatedMessage =>
+                handleMessageUpdate(updatedMessage, 'add')
+              }
             />
           </div>
         </div>
