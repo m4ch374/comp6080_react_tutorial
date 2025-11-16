@@ -25,11 +25,13 @@ import MessageItem from './MessageItem'
 interface ChannelDetailsProps {
   channelId: number
   onChannelChange?: (channel: ChannelBasic) => void
+  onUserClick?: (userId: number) => void
 }
 
 const ChannelDetails = ({
   channelId,
   onChannelChange,
+  onUserClick,
 }: ChannelDetailsProps) => {
   const [channel, setChannel] = useState<Channel | null>(null)
   const [creator, setCreator] = useState<User | null>(null)
@@ -430,6 +432,7 @@ const ChannelDetails = ({
                       channelId={channelId}
                       currentUserId={userId}
                       onMessageUpdate={handleMessageUpdate}
+                      onUserClick={onUserClick}
                     />
                   ))}
                 </div>

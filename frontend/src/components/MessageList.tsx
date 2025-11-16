@@ -10,6 +10,7 @@ interface MessageListProps {
     updatedMessage?: Message,
     action?: 'add' | 'update' | 'delete'
   ) => void
+  onUserClick?: (userId: number) => void
 }
 
 const MessageList = ({
@@ -17,6 +18,7 @@ const MessageList = ({
   currentUserId,
   messages,
   onMessageUpdate,
+  onUserClick,
 }: MessageListProps) => {
   const [userCache, setUserCache] = useState<Record<number, User>>({})
   const scrollContainerRef = useRef<HTMLDivElement>(null)
@@ -108,6 +110,7 @@ const MessageList = ({
               sender={userCache[message.sender]}
               ensureUser={ensureUser}
               onMessageUpdate={onMessageUpdate}
+              onUserClick={onUserClick}
             />
           ))}
         </div>

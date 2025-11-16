@@ -12,6 +12,7 @@ interface MessageItemProps {
   ) => void
   sender?: User
   ensureUser?: (userId: number) => Promise<User>
+  onUserClick?: (userId: number) => void
 }
 
 const REACTIONS = ['👍', '❤️', '😂'] // At least 3 UTF-8 emoji reactions
@@ -23,6 +24,7 @@ const MessageItem = ({
   onMessageUpdate,
   sender: initialSender,
   ensureUser,
+  onUserClick,
 }: MessageItemProps) => {
   const [sender, setSender] = useState<User | null>(initialSender ?? null)
   const [isEditing, setIsEditing] = useState(false)
@@ -211,7 +213,15 @@ const MessageItem = ({
         >
           {!isOwnMessage && (
             <div className="flex items-baseline gap-2 mb-1 px-1">
-              <span className="text-xs font-semibold text-zinc-700 dark:text-zinc-300">
+              <span
+                className="message-user-name text-xs font-semibold text-zinc-700 dark:text-zinc-300 cursor-pointer hover:text-indigo-600 dark:hover:text-indigo-400 transition-colors"
+                onClick={e => {
+                  e.stopPropagation()
+                  if (onUserClick) {
+                    onUserClick(message.sender)
+                  }
+                }}
+              >
                 {sender?.name || `User ${message.sender}`}
               </span>
             </div>

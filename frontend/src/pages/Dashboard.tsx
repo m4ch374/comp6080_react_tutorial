@@ -3,11 +3,13 @@ import { useParams } from 'react-router-dom'
 import ChannelDetails from '../components/ChannelDetails'
 import MessageList from '../components/MessageList'
 import MessageInput from '../components/MessageInput'
+import ProfileView from '../components/ProfileView'
 import { messageApi, type Message } from '../../utils/api'
 import { useChannels } from '../contexts/ChannelContext'
 
 const Dashboard = () => {
   const [messages, setMessages] = useState<Message[]>([])
+  const [selectedUserId, setSelectedUserId] = useState<number | null>(null)
   const { channelId } = useParams<{ channelId?: string }>()
   const userId = parseInt(localStorage.getItem('userId') || '0', 10)
   const { upsertChannel } = useChannels()
@@ -56,6 +58,7 @@ const Dashboard = () => {
         <ChannelDetails
           channelId={parseInt(channelId!, 10)}
           onChannelChange={upsertChannel}
+          onUserClick={setSelectedUserId}
         />
 
         {/* Messages List */}
@@ -64,6 +67,7 @@ const Dashboard = () => {
           currentUserId={userId}
           messages={messages}
           onMessageUpdate={handleMessageUpdate}
+          onUserClick={setSelectedUserId}
         />
 
         {/* Message Input - Fixed at bottom of screen */}
@@ -76,6 +80,14 @@ const Dashboard = () => {
           />
         </div>
       </div>
+
+      {/* Profile View */}
+      {selectedUserId !== null && (
+        <ProfileView
+          userId={selectedUserId}
+          onClose={() => setSelectedUserId(null)}
+        />
+      )}
     </div>
   )
 }
