@@ -1,20 +1,18 @@
 import { useState, useTransition } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { channelApi, type ChannelBasic } from '../../utils/api'
+import { channelApi } from '../../utils/api'
 import { Checkbox } from '@/components/animate-ui/components/base/checkbox'
 import { Plus, X } from 'lucide-react'
+import { useChannels } from '../contexts/ChannelContext'
 
-interface CreateChannelFormProps {
-  onChannelCreated?: (channel: ChannelBasic) => void
-}
-
-const CreateChannelForm = ({ onChannelCreated }: CreateChannelFormProps) => {
+const CreateChannelForm = () => {
   const [isOpen, setIsOpen] = useState(false)
   const [name, setName] = useState('')
   const [description, setDescription] = useState('')
   const [isPrivate, setIsPrivate] = useState(false)
   const [isPending, startTransition] = useTransition()
   const navigate = useNavigate()
+  const { upsertChannel } = useChannels()
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -37,9 +35,9 @@ const CreateChannelForm = ({ onChannelCreated }: CreateChannelFormProps) => {
         setIsPrivate(false)
         setIsOpen(false)
 
-        // Notify parent to update channel list
-        if (onChannelCreated && response.channel) {
-          onChannelCreated(response.channel)
+        // Update channel list in context
+        if (response.channel) {
+          upsertChannel(response.channel)
         }
 
         // Navigate to the new channel

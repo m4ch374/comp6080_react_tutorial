@@ -6,7 +6,7 @@ import Login from './pages/Login'
 import Dashboard from './pages/Dashboard'
 import DashboardOnboard from './pages/DashboardOnboard'
 import Layout from './components/Layout'
-import ProtectedRoute from './components/ProtectedRoute'
+import DashboardLayout from './components/DashboardLayout'
 
 const App = () => {
   return (
@@ -16,7 +16,7 @@ const App = () => {
         <Route path="/pricing" element={<Pricing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
-        <Route element={<ProtectedRoute />}>
+        <Route element={<DashboardLayout />}>
           <Route path="/dashboard" element={<DashboardOnboard />} />
           <Route path="/dashboard/:channelId" element={<Dashboard />} />
         </Route>

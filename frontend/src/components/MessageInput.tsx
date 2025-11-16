@@ -58,10 +58,7 @@ const MessageInput = ({ channelId, onMessageSent }: MessageInputProps) => {
   }
 
   return (
-    <form
-      onSubmit={handleSubmit}
-      className="p-4"
-    >
+    <form onSubmit={handleSubmit} className="p-4">
       <div className="relative">
         <textarea
           ref={textareaRef}
@@ -89,4 +86,3 @@ const MessageInput = ({ channelId, onMessageSent }: MessageInputProps) => {
 }
 
 export default MessageInput
-
