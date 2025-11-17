@@ -1,19 +1,19 @@
-import { useState, useTransition } from 'react'
+import { useTransition } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router-dom'
-import { Sun, Moon, LogOut, User } from 'lucide-react'
+import { Sun, Moon, LogOut } from 'lucide-react'
 import { Switch } from '@/components/animate-ui/components/radix/switch'
 import { useTheme } from '@/contexts/ThemeContext'
+import { useUser } from '@/contexts/UserContext'
 import { authApi } from '../../utils/api'
-import ProfileView from './ProfileView'
+import NavBarProfileButton from './NavBarProfileButton'
 
 const Navbar = () => {
   const { theme, setTheme } = useTheme()
+  const { currentUser } = useUser()
   const location = useLocation()
   const navigate = useNavigate()
   const [isPending, startTransition] = useTransition()
-  const [showProfile, setShowProfile] = useState(false)
   const isLoggedIn = !!localStorage.getItem('token')
-  const userId = parseInt(localStorage.getItem('userId') || '0', 10)
 
   const handleLogout = async () => {
     startTransition(async () => {
@@ -77,15 +77,7 @@ const Navbar = () => {
             )}
 
             {/* Profile Button - only show when logged in */}
-            {isLoggedIn && (
-              <button
-                onClick={() => setShowProfile(true)}
-                className="p-2 text-zinc-600 dark:text-zinc-400 hover:text-zinc-900 dark:hover:text-zinc-100 hover:bg-zinc-100 dark:hover:bg-zinc-800 rounded-lg transition-colors"
-                title="My Profile"
-              >
-                <User className="h-5 w-5" />
-              </button>
-            )}
+            {isLoggedIn && <NavBarProfileButton currentUser={currentUser} />}
 
             {/* Theme Toggle */}
             <div className="flex items-center gap-2 pl-3 border-l border-zinc-200 dark:border-zinc-700">
@@ -101,9 +93,6 @@ const Navbar = () => {
           </div>
         </div>
       </div>
-      {showProfile && (
-        <ProfileView userId={userId} onClose={() => setShowProfile(false)} />
-      )}
     </nav>
   )
 }

@@ -1,33 +1,13 @@
-import { useEffect, useState } from 'react'
 import { createPortal } from 'react-dom'
-import { userApi, type User } from '../../utils/api'
+import { type User } from '../../utils/api'
 import { X } from 'lucide-react'
 
 interface ProfileViewProps {
-  userId: number
+  user: User | null
   onClose: () => void
 }
 
-const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
-  const [user, setUser] = useState<User | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        setLoading(true)
-        const userData = await userApi.getDetails(userId)
-        setUser(userData)
-      } catch (error) {
-        console.error('Failed to fetch user profile:', error)
-      } finally {
-        setLoading(false)
-      }
-    }
-
-    fetchUser()
-  }, [userId])
-
+const ProfileView = ({ user, onClose }: ProfileViewProps) => {
   const defaultAvatar =
     'https://ui-avatars.com/api/?name=' +
     encodeURIComponent(user?.name || 'User')
@@ -57,13 +37,7 @@ const ProfileView = ({ userId, onClose }: ProfileViewProps) => {
 
         {/* Content */}
         <div className="flex-1 overflow-y-auto p-6">
-          {loading ? (
-            <div className="flex items-center justify-center h-32">
-              <div className="text-zinc-500 dark:text-zinc-400">
-                Loading profile...
-              </div>
-            </div>
-          ) : user ? (
+          {user ? (
             <div className="flex flex-col items-center text-center space-y-4">
               {/* Profile Image */}
               <img
